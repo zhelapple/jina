@@ -279,6 +279,14 @@
       "created_at": "2020-12-07T13:55:23Z",
       "repoId": 240315046,
       "pullRequestNo": 1405
+    },
+    {
+      "name": "tadej-redstone",
+      "id": 69796623,
+      "comment_id": 750496323,
+      "created_at": "2020-12-23T22:25:38Z",
+      "repoId": 240315046,
+      "pullRequestNo": 1499
     }
   ]
 }
