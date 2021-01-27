@@ -88,7 +88,7 @@ class Message:
         """
         return self.envelope.request_type != 'ControlRequest'
 
-    def _add_envelope(self, pod_name, identity, check_version=False,
+    def _add_envelope(self, pod_name, builtin_id: str = '', check_version: bool = False,
                       request_id: str = None, request_type: str = None,
                       compress: str = 'NONE', compress_min_bytes: int = 0, compress_min_ratio: float = 1., *args,
                       **kwargs) -> 'jina_pb2.EnvelopeProto':
@@ -104,7 +104,6 @@ class Message:
         :return: the resulted protobuf message
         """
         envelope = jina_pb2.EnvelopeProto()
-        envelope.receiver_id = identity
         if isinstance(self.request, jina_pb2.RequestProto) or (request_id and request_type):
             # not lazy request, so we can directly access its request_id without worrying about
             # triggering the deserialization
@@ -136,7 +135,7 @@ class Message:
         envelope.compression.min_bytes = compress_min_bytes
         envelope.timeout = 5000
         self._add_version(envelope)
-        self._add_route(pod_name, identity, envelope)
+        self._add_route(pod_name, builtin_id, envelope)
         envelope.check_version = check_version
         return envelope
 
@@ -231,19 +230,19 @@ class Message:
         route_str.append('⚐')
         return colored('▸', 'green').join(route_str)
 
-    def add_route(self, name: str, identity: str):
-        self._add_route(name, identity, self.envelope)
+    def add_route(self, name: str, builtin_id: str):
+        self._add_route(name, builtin_id, self.envelope)
 
-    def _add_route(self, name: str, identity: str, envelope: 'jina_pb2.EnvelopeProto') -> None:
+    def _add_route(self, name: str, builtin_id: str, envelope: 'jina_pb2.EnvelopeProto') -> None:
         """Add a route to the envelope
 
         :param name: the name of the pod service
-        :param identity: the identity of the pod service
+        :param builtin_id: the memory address of the sender object
         """
         r = envelope.routes.add()
         r.pod = name
         r.start_time.GetCurrentTime()
-        r.pod_id = identity
+        r.builtin_id = builtin_id
 
     @property
     def size(self):
@@ -313,7 +312,7 @@ class Message:
         return self.request
 
     def merge_envelope_from(self, msgs: List['Message']):
-        routes = {(r.pod + r.pod_id): r for m in msgs for r in m.envelope.routes}
+        routes = {(r.pod + r.builtin_id): r for m in msgs for r in m.envelope.routes}
         self.envelope.ClearField('routes')
         self.envelope.routes.extend(
             sorted(routes.values(), key=lambda x: (x.start_time.seconds, x.start_time.nanos)))

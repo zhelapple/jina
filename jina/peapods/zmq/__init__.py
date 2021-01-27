@@ -38,7 +38,7 @@ class Zmqlet:
         :param logger: the logger to use
         """
         self.args = args
-        self.identity = hex(id(self))
+        self._builtin_id = hex(id(self))
         self.name = args.name or self.__class__.__name__
         self.logger = logger
         self.send_recv_kwargs = vars(args)
@@ -140,14 +140,14 @@ class Zmqlet:
             self.logger.debug(f'control over {colored(ctrl_addr, "yellow")}')
 
             in_sock, in_addr = _init_socket(ctx, self.args.host_in, self.args.port_in, self.args.socket_in,
-                                            self.identity,
+                                            self._builtin_id,
                                             ssh_server=self.args.ssh_server,
                                             ssh_keyfile=self.args.ssh_keyfile,
                                             ssh_password=self.args.ssh_password)
             self.logger.debug(f'input {self.args.host_in}:{colored(self.args.port_in, "yellow")}')
 
             out_sock, out_addr = _init_socket(ctx, self.args.host_out, self.args.port_out, self.args.socket_out,
-                                              self.identity,
+                                              self._builtin_id,
                                               ssh_server=self.args.ssh_server,
                                               ssh_keyfile=self.args.ssh_keyfile,
                                               ssh_password=self.args.ssh_password
@@ -223,10 +223,10 @@ class Zmqlet:
 
     def send_idle(self):
         """Tell the upstream router this dealer is idle """
-        msg = ControlMessage('IDLE', pod_name=self.name, identity=self.identity)
+        msg = ControlMessage('IDLE', pod_name=self.name, builtin_id=self._builtin_id)
         self.bytes_sent += send_message(self.in_sock, msg, **self.send_recv_kwargs)
         self.msg_sent += 1
-        self.logger.debug(f'idle and i {self.identity} told the router')
+        self.logger.debug(f'idle and i {self._builtin_id} told the router')
 
     def recv_message(self, callback: Callable[['Message'], 'Message'] = None) -> 'Message':
         """Receive a protobuf message from the input socket

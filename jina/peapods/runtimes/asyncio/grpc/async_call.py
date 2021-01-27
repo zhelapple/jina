@@ -29,6 +29,8 @@ class AsyncPrefetchCall(jina_pb2_grpc.JinaRPCServicer):
             # as every request corresponds to one message, #send_message = #recv_message
             prefetch_task = []
             onrecv_task = []
+            kwargs = vars(self.args)
+            kwargs['builtin_id'] = hex(id(self))
 
             async def prefetch_req(num_req, fetch_to):
                 for _ in range(num_req):
@@ -48,7 +50,7 @@ class AsyncPrefetchCall(jina_pb2_grpc.JinaRPCServicer):
                         else:
                             break
                         asyncio.create_task(
-                            zmqlet.send_message(Message(None, next_request, 'gateway', **vars(self.args))))
+                            zmqlet.send_message(Message(None, next_request, 'gateway', **kwargs)))
                         fetch_to.append(asyncio.create_task(zmqlet.recv_message(callback=handle)))
                     except (StopIteration, StopAsyncIteration):
                         return True

@@ -63,7 +63,7 @@ def test_add_route():
     msg.add_route('name', 'identity')
     assert len(msg.envelope.routes) == 2
     assert msg.envelope.routes[1].pod == 'name'
-    assert msg.envelope.routes[1].pod_id == 'identity'
+    assert msg.envelope.routes[1].builtin_id == 'identity'
 
 
 def test_extract_docs():

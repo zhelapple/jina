@@ -150,6 +150,7 @@ message RouteProto {
     google.protobuf.Timestamp start_time = 3; // receiving time
     google.protobuf.Timestamp end_time = 4; // sending (out) time
     StatusProto status = 5; // the status of the execution
+    string builtin_id = 6; // the address of the object in memory, returned by Python `id()` function
 }
 
 /**
@@ -159,7 +160,7 @@ message EnvelopeProto {
     // unique id of the sender of the message
     string sender_id = 1;
 
-    // unique id of the receiver of the message, only used in router-dealer pattern
+    // ONLY used in router-dealer pattern, unique id of the receiver of the message
     string receiver_id = 2;
 
     // unique id of the request
