@@ -3,6 +3,8 @@ __license__ = "Apache-2.0"
 
 from typing import Optional
 
+import numpy as np
+
 from . import BaseExecutableDriver, FlatRecursiveMixin
 from ..types.sets import DocumentSet
 from ..excepts import LengthMismatchException
@@ -25,7 +27,9 @@ class EncodeDriver(FlatRecursiveMixin, BaseEncodeDriver):
 
         if docs_pts:
             embeds = self.exec_fn(contents)
-            if len(docs_pts) != embeds.shape[0]:
+            if (
+                isinstance(embeds, np.ndarray) and len(docs_pts) != embeds.shape[0]
+            ) or (not isinstance(embeds, np.ndarray) and len(docs_pts) != len(embeds)):
                 msg = (
                     f'mismatched {len(docs_pts)} docs from level {docs_pts[0].granularity} '
                     f'and a {embeds.shape} shape embedding, the first dimension must be the same'
@@ -33,4 +37,5 @@ class EncodeDriver(FlatRecursiveMixin, BaseEncodeDriver):
                 self.logger.error(msg)
                 raise LengthMismatchException(msg)
             for doc, embedding in zip(docs_pts, embeds):
+                print(f' embedding {embedding}')
                 doc.embedding = embedding
