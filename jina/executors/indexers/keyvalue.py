@@ -5,6 +5,7 @@ import mmap
 import os
 import random
 from typing import Iterable, Optional
+from jina.logging.logger import JinaLogger
 
 import numpy as np
 
@@ -22,7 +23,9 @@ class _WriteHandler:
     :param mode: Writing mode. (e.g. 'ab', 'wb')
     """
 
-    def __init__(self, path, mode):
+    def __init__(self, path, mode, logger=None):
+        self.logger = logger or JinaLogger('write handler')
+        self.path = path
         self.body = open(path, mode)
         self.header = open(path + '.head', mode)
 
@@ -35,10 +38,12 @@ class _WriteHandler:
 
     def flush(self):
         """Clear the body and header."""
+        self.logger.warning(f' Before flush? => {os.path.getsize(self.path)}')
         if not self.body.closed:
             self.body.flush()
         if not self.header.closed:
             self.header.flush()
+        self.logger.warning(f' After flush? => {os.path.getsize(self.path)}')
 
 
 class _ReadHandler:
@@ -50,6 +55,7 @@ class _ReadHandler:
     """
 
     def __init__(self, path, key_length):
+        self.path = path
         with open(path + '.head', 'rb') as fp:
             tmp = np.frombuffer(
                 fp.read(),
@@ -90,7 +96,7 @@ class BinaryPbWriterMixin:
         :return: write handler
         """
         # keep _start position as in pickle serialization
-        return _WriteHandler(self.index_abspath, 'ab')
+        return _WriteHandler(self.index_abspath, 'ab', self.logger)
 
     def get_create_handler(self) -> '_WriteHandler':
         """
@@ -99,7 +105,7 @@ class BinaryPbWriterMixin:
         :return: write handler.
         """
         self._start = 0  # override _start position
-        return _WriteHandler(self.index_abspath, 'wb')
+        return _WriteHandler(self.index_abspath, 'wb', self.logger)
 
     def get_query_handler(self) -> '_ReadHandler':
         """
@@ -177,6 +183,10 @@ class BinaryPbWriterMixin:
         pos_info = self.query_handler.header.get(key, None)
         if pos_info is not None:
             p, r, l = pos_info
+            self.logger.warning(f'p, r, l {p}, {r}, {l}')
+            self.logger.warning(f'_start {self._start}')
+            self.logger.warning(f'query_handler.body {self.query_handler.body}')
+            self.logger.warning(f'size {os.path.getsize(self.query_handler.path)}')
             with mmap.mmap(self.query_handler.body, offset=p, length=l) as m:
                 return m[r:]
 

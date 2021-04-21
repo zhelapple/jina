@@ -106,6 +106,7 @@ class LegacyParser(VersionedYAMLParser):
                 obj.workspace = workspace_loaded_from
 
             obj.fill_in_drivers(data.get('requests', None))
+            obj.logger.warning(f' obj {dir(obj)} {getattr(obj, "_start", None)}')
             load_from_dump = True
         else:
             cls._init_from_yaml = True
