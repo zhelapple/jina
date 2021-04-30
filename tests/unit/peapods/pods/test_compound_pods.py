@@ -223,7 +223,7 @@ def test_host_list_matching(num_hosts, used_hosts):
             'all',
             1,
             SchedulerType.LOAD_BALANCE,
-            SocketType.SUB_CONNECT,
+            SocketType.DEALER_CONNECT,
             SocketType.PUSH_CONNECT,
         ),
         (
@@ -243,7 +243,7 @@ def test_host_list_matching(num_hosts, used_hosts):
     ),
 )
 def test_sockets(polling, parallel, pea_scheduling, pea_socket_in, pea_socket_out):
-    polling_type = PollingType.ALL if polling == 'all' else PollingType.ANY
+    polling_type = PollingType.from_string(polling)
     args = set_pod_parser().parse_args(
         [
             '--name',
@@ -277,3 +277,9 @@ def test_sockets(polling, parallel, pea_scheduling, pea_socket_in, pea_socket_ou
                 assert pea.socket_in == pea_socket_in
                 assert pea.socket_out == pea_socket_out
                 assert pea.scheduling == pea_scheduling
+        else:
+            assert len(pod.peas) == 1
+            assert pod.peas[0].args.polling == polling_type
+            assert pod.peas[0].args.socket_in == pea_socket_in
+            assert pod.peas[0].args.socket_out == pea_socket_out
+            assert pod.peas[0].args.scheduling == pea_scheduling
