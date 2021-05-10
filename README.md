@@ -20,8 +20,10 @@
 
 We're happy to announce the pre-release of Jina 2.0!
 
-- If you're a **new user** or just been using Jina for **small projects**: [Install our pre-release](#installation) so you can have a smooth transition to 2.0
-- If you're an **experienced user** or have a **big project**: [Talk to us on Slack](https://slack.jina.ai) so we can help you smoothly migrate to 2.0
+- If you're a **new user** or just been using Jina for **small projects**: [Install our pre-release](#installation) so you can have a smooth transition to 2.0.
+- If you're an **experienced user** or have a **big project**: [Talk to us on Slack](https://slack.jina.ai) so we can help you smoothly migrate to 2.0.
+
+The below README is for Jina 2.0. [The 1.0 README is archived here](./README-1.0.md)
 
 ---
 
@@ -77,6 +79,8 @@ Jina is geared towards building search systems for any kind of data, including [
 
 ## Installation
 
+To install Jina 2.0 pre-release:
+
 ```sh
 pip install -U --pre jina
 ```
@@ -84,7 +88,7 @@ pip install -U --pre jina
 #### via Docker
 
 ```sh
-docker run jinaai/jina:latest
+docker run jinaai/jina:pre
 ```
 
 <details>
@@ -149,9 +153,9 @@ Developing Jina app often means writing YAML configs. We provide a [JSON Schema]
 
 All you need ~is love~ are Documents, Executors, and Flows. It's as easy as 1, 2, 3:
 
-1. Read up on [**Documents**](./.github/2.0/COOKBOOK-Document.md), Jina's primitive data type.
-2. Read up on [**Executors**](./.github/2.0/COOKBOOK-Executor.md), which process Documents in different ways.
-3. Read up on [**Flows**](./.github/2.0/COOKBOOK-Flow.md), which chain Executors together to create a workflow.
+1. [**Documents**](./.github/2.0/COOKBOOK-Document.md) are Jina's primitive data type.
+2. [**Executors**](./.github/2.0/COOKBOOK-Executor.md) process Documents in different ways.
+3. [**Flows**](./.github/2.0/COOKBOOK-Flow.md) chain Executors together to create a workflow.
 
 Learn them all, nothing more, you are good to go.
 
