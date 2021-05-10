@@ -16,6 +16,15 @@
 <a href="https://slack.jina.ai"><img src="https://img.shields.io/badge/Slack-500%2B-blueviolet"></a>
 </p>
 
+## 🚨 READ THIS! 🚨
+
+We're happy to announce the pre-release of Jina 2.0!
+
+- If you're a **new user** or just been using Jina for **small projects**: [Install our pre-release](#installation) so you can have a smooth transition to 2.0
+- If you're an **experienced user** or have a **big project**: [Talk to us on Slack](https://slack.jina.ai) so we can help you smoothly migrate to 2.0
+
+---
+
 <details>
 <summary>👋 Click here to see quick demo!</summary>
 
@@ -69,7 +78,7 @@ Jina is geared towards building search systems for any kind of data, including [
 ## Installation
 
 ```sh
-pip install -U jina
+pip install -U --pre jina
 ```
 
 #### via Docker
@@ -136,10 +145,15 @@ Developing Jina app often means writing YAML configs. We provide a [JSON Schema]
 
 ## Get Started
 
+### The Basics
 
-### Cookbook
+All you need ~is love~ are Documents, Executors, and Flows. It's as easy as 1, 2, 3:
 
-[Bits, pieces and examples of Jina code](./.github/pages/snippets.md)
+1. Read up on [**Documents**](./.github/2.0/COOKBOOK-Document.md), Jina's primitive data type.
+2. Read up on [**Executors**](./.github/2.0/COOKBOOK-Executor.md), which process Documents in different ways.
+3. Read up on [**Flows**](./.github/2.0/COOKBOOK-Flow.md), which chain Executors together to create a workflow.
+
+Learn them all, nothing more, you are good to go.
 
 ### Run Quick Demo
 
@@ -147,58 +161,6 @@ Developing Jina app often means writing YAML configs. We provide a [JSON Schema]
 - [🤖 QA chatbot](./.github/pages/hello-world.md#-covid-19-chatbot): `pip install "jina[chatbot]" && jina hello chatbot`
 - [📰 Multimedia search](./.github/pages/hello-world.md#-multimodal-document-search): `pip install "jina[multimodal]" && jina hello multimodal`
 
-### The Basics
-
-- [What is neural search, and how is it different to symbolic search?](https://jina.ai/2020/07/06/What-is-Neural-Search-and-Why-Should-I-Care.html)
-- [Jina 101: Learn Jina's key components](https://docs.jina.ai/chapters/101/)
-- [Jina 102: Learn how Jina's components fit together](https://docs.jina.ai/chapters/102/)
-- [My First Jina App: Build your first simple app](https://docs.jina.ai/chapters/my_first_jina_app/)
-
-
-### Video Tutorials
-
-<table>
-  <tr>
-    <td width="33%">
-    <a href="https://youtu.be/zvXkQkqd2I8">
-      <img src="https://github.com/jina-ai/jina/blob/master/.github/images/basic-concept.png?raw=true"/>
-    </a>
-    </td>
-    <td width="33%">
-    <a href="https://youtu.be/qOD-6mihUzQ">
-      <img src="https://github.com/jina-ai/jina/blob/master/.github/images/speedup.png?raw=true"/>
-    </a>
-    </td>
-    <td width="33%">
-    <a href="https://youtu.be/B_nH8GCmBfc">
-      <img src="https://github.com/jina-ai/jina/blob/master/.github/images/multimodal-search.png?raw=true"/>
-    </a>
-    </td>
-  </tr>
-</table>
-
-
-### Examples ([View all](https://github.com/jina-ai/examples))
- 
-#### [📄 NLP Semantic Wikipedia Search with Transformers and DistilBERT](https://github.com/jina-ai/examples/tree/master/wikipedia-sentences)
-&nbsp;&nbsp;&nbsp;&nbsp;Brand new to neural search? See a simple text-search example to understand how Jina works 
-
-#### [📄 Add Incremental Indexing to Wikipedia Search](https://github.com/jina-ai/examples/tree/master/wikipedia-sentences-incremental)
-&nbsp;&nbsp;&nbsp;&nbsp;Index more effectively by adding incremental indexing to your Wikipedia search 
-
-#### [📄 Search Lyrics with Transformers and PyTorch](https://github.com/jina-ai/examples/tree/master/multires-lyrics-search)
-&nbsp;&nbsp;&nbsp;&nbsp;Get a better understanding of chunks by searching a lyrics database. Now with shiny front-end! 
-
-#### [🖼️ Google's Big Transfer Model in (Poké-)Production](https://github.com/jina-ai/examples/tree/master/pokedex-with-bit)
-&nbsp;&nbsp;&nbsp;&nbsp;Use SOTA visual representation for searching Pokémon!
-
-#### [🎧 Search YouTube audio data with Vggish](https://github.com/jina-ai/examples/tree/master/audio-search)
-&nbsp;&nbsp;&nbsp;&nbsp;A demo of neural search for audio data based Vggish model. 
-
-#### [🎞️ Search Tumblr GIFs with KerasEncoder](https://github.com/jina-ai/examples/tree/master/tumblr-gif-search)
-&nbsp;&nbsp;&nbsp;&nbsp;Use prefetching and sharding to improve the performance of your index and query Flow when searching animated GIFs.
-
-Check our [examples repo](https://github.com/jina-ai/examples) for advanced and community-submitted examples.
 
 ## Documentation & Support
 
