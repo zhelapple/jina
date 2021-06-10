@@ -76,6 +76,24 @@ message GraphProto {
 }
 
 /**
+ * Represents the connectivity between graphs to build a graph aggregation
+ */
+message GraphConnectivityEdgeProto {
+    string in_graph_id = 1; // the id of the graph from which to build an inter-graph connectivity. The real `id` of the graph
+    uint32 in_node_offset = 2; // the offset of the node to be connected
+
+    string out_graph_id = 3; // the id of a Node in a `Document`. The real `id` of the graph
+    uint32 out_node_offset = 4; // the offset of the node to be connected
+}
+
+/**
+ * Represents the aggregation of different Graphs
+ */
+message GraphAggregatorProto {
+    repeated GraphConnectivityEdgeProto connectivity = 1;
+}
+
+/**
  * Represents a Document
  */
 message DocumentProto {
@@ -109,6 +127,9 @@ message DocumentProto {
 
         // Related information to be used when a Document represents a graph with its chunks as nodes
         GraphProto graph = 27;
+
+        // Related information to be used when a Document represents a the connectivity of different graphs
+        GraphAggregatorProto graph_aggregator = 28;
     }
 
     // list of the sub-documents of this document (recursive structure)
