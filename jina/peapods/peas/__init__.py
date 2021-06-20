@@ -1,5 +1,5 @@
 import argparse
-from typing import Type, Tuple
+from typing import Any, Tuple
 import time
 import multiprocessing
 import threading
@@ -15,9 +15,6 @@ from ..runtimes.jinad import JinadRuntime
 from ..zmq import Zmqlet, send_ctrl_message
 
 __all__ = ['BasePea']
-
-if False:
-    from ..runtimes.base import BaseRuntime
 
 
 class BasePea:
@@ -221,7 +218,7 @@ class BasePea:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def _get_runtime_cls(self) -> Tuple[Type['BaseRuntime'], bool]:
+    def _get_runtime_cls(self) -> Tuple[Any, bool]:
         is_remote_controlled = False
         if self.args.host != __default_host__:
             self.args.runtime_cls = 'JinadRuntime'
@@ -230,7 +227,12 @@ class BasePea:
             'docker://'
         ):
             self.args.runtime_cls = 'ContainerRuntime'
-
+        if hasattr(self.args, 'protocol'):
+            self.args.runtime_cls = {
+                GatewayProtocolType.GRPC: 'GRPCRuntime',
+                GatewayProtocolType.WEBSOCKET: 'WebSocketRuntime',
+                GatewayProtocolType.HTTP: 'HTTPRuntime',
+            }[self.args.protocol]
         from ..runtimes import get_runtime
 
         v = get_runtime(self.args.runtime_cls)
@@ -245,7 +247,7 @@ class BasePea:
         return self.args.pea_role
 
     @property
-    def inner(self) -> bool:
+    def _is_inner_pea(self) -> bool:
         """Determine whether this is a inner pea or a head/tail
 
 
