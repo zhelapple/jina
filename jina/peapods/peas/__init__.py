@@ -1,14 +1,14 @@
 import argparse
-import os
 from typing import Type, Tuple
 import time
 import multiprocessing
 import threading
 
 from .helper import _get_event, ConditionalEvent
+from .run import run
 from ... import __stop_msg__, __ready_msg__, __default_host__
 from ...enums import PeaRoleType, RuntimeBackendType, SocketType
-from ...excepts import RuntimeFailToStart, RuntimeTerminated
+from ...excepts import RuntimeFailToStart
 from ...helper import typename
 from ...logging.logger import JinaLogger
 from ..runtimes.jinad import JinadRuntime
@@ -30,18 +30,16 @@ class BasePea:
 
     def __init__(self, args: 'argparse.Namespace'):
         super().__init__()  #: required here to call process/thread __init__
-        self.worker = {
-            RuntimeBackendType.THREAD: threading.Thread,
-            RuntimeBackendType.PROCESS: multiprocessing.Process,
-        }.get(getattr(args, 'runtime_backend', RuntimeBackendType.THREAD))(
-            target=self.run
-        )
         self.args = args
+        backend_runtime = getattr(
+            self.args, 'runtime_backend', RuntimeBackendType.THREAD
+        )
+
         self.daemon = args.daemon  #: required here to set process/thread daemon
 
         self.name = self.args.name or self.__class__.__name__
-        self.is_ready = _get_event(self.worker)
-        self.is_shutdown = _get_event(self.worker)
+        self.is_ready = _get_event(backend_runtime)
+        self.is_shutdown = _get_event(backend_runtime)
         self.ready_or_shutdown = ConditionalEvent(
             getattr(args, 'runtime_backend', RuntimeBackendType.THREAD),
             events_list=[self.is_ready, self.is_shutdown],
@@ -78,6 +76,23 @@ class BasePea:
         )
         self._timeout_ctrl = self.args.timeout_ctrl
 
+        self.worker = {
+            RuntimeBackendType.THREAD: threading.Thread,
+            RuntimeBackendType.PROCESS: multiprocessing.Process,
+        }.get(backend_runtime)(
+            target=run,
+            kwargs={
+                'args': self.args,
+                'logger': self.logger,
+                'envs': self._envs,
+                'runtime_cls': self.runtime_cls,
+                'local_runtime_ctrl_addr': self._local_runtime_ctrl_address,
+                'zed_runtime_ctrl_addres': self._zed_runtime_ctrl_addres,
+                'is_ready_event': self.is_ready,
+                'is_shutdown_event': self.is_shutdown,
+            },
+        )
+
     def start(self):
         """Start the Pea.
         This method calls :meth:`start` in :class:`threading.Thread` or :class:`multiprocesssing.Process`.
@@ -103,82 +118,6 @@ class BasePea:
         """
         if hasattr(self.worker, 'terminate'):
             self.worker.terminate()
-
-    def _build_runtime(self):
-        """
-        Instantiates the runtime object
-
-        :return: the runtime object
-        """
-        # This is due to the fact that JinadRuntime instantiates a Zmq server at local_ctrl_addr that will itself
-        # send ctrl command
-        # (TODO: Joan) Fix that in _wait_for_cancel from async runtime
-        ctrl_addr = (
-            self._local_runtime_ctrl_address
-            if self.runtime_cls == JinadRuntime
-            else self._zed_runtime_ctrl_addres
-        )
-        return self.runtime_cls(self.args, ctrl_addr=ctrl_addr)
-
-    def run(self):
-        """Method representing the :class:`BaseRuntime` activity.
-
-        This method overrides :meth:`run` in :class:`threading.Thread` or :class:`multiprocesssing.Process`.
-
-        .. note::
-            :meth:`run` is running in subprocess/thread, the exception can not be propagated to the main process.
-            Hence, please do not raise any exception here.
-        """
-        try:
-            self._set_envs()
-            runtime = self._build_runtime()
-        except Exception as ex:
-            self.logger.error(
-                f'{ex!r} during {self.runtime_cls!r} initialization'
-                + f'\n add "--quiet-error" to suppress the exception details'
-                if not self.args.quiet_error
-                else '',
-                exc_info=not self.args.quiet_error,
-            )
-        else:
-            self.is_ready.set()
-            try:
-                runtime.run_forever()
-            except RuntimeFailToStart as ex:
-                self.logger.error(
-                    f'{ex!r} during {self.runtime_cls.__init__!r}'
-                    + f'\n add "--quiet-error" to suppress the exception details'
-                    if not self.args.quiet_error
-                    else '',
-                    exc_info=not self.args.quiet_error,
-                )
-            except RuntimeTerminated:
-                self.logger.info(f'{runtime!r} is end')
-            except KeyboardInterrupt:
-                self.logger.info(f'{runtime!r} is interrupted by user')
-            except (Exception, SystemError) as ex:
-                self.logger.error(
-                    f'{ex!r} during {runtime.run_forever!r}'
-                    + f'\n add "--quiet-error" to suppress the exception details'
-                    if not self.args.quiet_error
-                    else '',
-                    exc_info=not self.args.quiet_error,
-                )
-
-            try:
-                runtime.teardown()
-            except Exception as ex:
-                self.logger.error(
-                    f'{ex!r} during {runtime.teardown!r}'
-                    + f'\n add "--quiet-error" to suppress the exception details'
-                    if not self.args.quiet_error
-                    else '',
-                    exc_info=not self.args.quiet_error,
-                )
-        finally:
-            self.is_shutdown.set()
-            self.is_ready.clear()
-            self._unset_envs()
 
     def activate_runtime(self):
         """ Send activate control message. """
@@ -275,30 +214,6 @@ class BasePea:
 
         self.logger.success(__stop_msg__)
         self.logger.close()
-
-    def _set_envs(self):
-        """Set environment variable to this pea
-
-        .. note::
-            Please note that env variables are process-specific. Subprocess inherits envs from
-            the main process. But Subprocess's envs do NOT affect the main process. It does NOT
-            mess up user local system envs.
-
-        .. warning::
-            If you are using ``thread`` as backend, envs setting will likely be overidden by others
-        """
-        if self.args.env:
-            if self.args.runtime_backend == RuntimeBackendType.THREAD:
-                self.logger.warning(
-                    'environment variables should not be set when runtime="thread".'
-                )
-            else:
-                os.environ.update({k: str(v) for k, v in self._envs.items()})
-
-    def _unset_envs(self):
-        if self._envs and self.args.runtime_backend != RuntimeBackendType.THREAD:
-            for k in self._envs.keys():
-                os.unsetenv(k)
 
     def __enter__(self):
         return self.start()

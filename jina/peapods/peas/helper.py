@@ -6,15 +6,13 @@ from functools import partial
 from ...enums import RuntimeBackendType
 
 
-def _get_event(obj) -> Union[multiprocessing.Event, threading.Event]:
-    if isinstance(obj, threading.Thread):
+def _get_event(
+    backend_runtime: RuntimeBackendType,
+) -> Union[multiprocessing.Event, threading.Event]:
+    if backend_runtime == RuntimeBackendType.THREAD:
         return threading.Event()
-    elif isinstance(obj, multiprocessing.Process):
-        return multiprocessing.Event()
     else:
-        raise TypeError(
-            f'{obj} is not an instance of "threading.Thread" nor "multiprocessing.Process"'
-        )
+        return multiprocessing.Event()
 
 
 class ConditionalEvent:
