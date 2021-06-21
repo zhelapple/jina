@@ -8,7 +8,7 @@ import threading
 from .helper import _get_event, ConditionalEvent
 from ... import __stop_msg__, __ready_msg__, __default_host__
 from ...enums import PeaRoleType, RuntimeBackendType, SocketType, GatewayProtocolType
-from ...excepts import RuntimeFailToStart, RuntimeTerminated
+from ...excepts import RuntimeFailToStart
 from ...helper import typename
 from ...logging.logger import JinaLogger
 from ..runtimes.jinad import JinadRuntime
@@ -80,6 +80,18 @@ class BasePea:
         This method calls :meth:`start` in :class:`threading.Thread` or :class:`multiprocesssing.Process`.
         .. #noqa: DAR201
         """
+        from multiprocessing import get_start_method
+
+        print(
+            f' os.env {os.environ.get("JINA_PEA_START_METHOD")} and {get_start_method()} '
+        )
+        if os.environ.get('JINA_PEA_START_METHOD', None) == 'spawn':
+            from multiprocessing import set_start_method as _set_start_method
+
+            _set_start_method('spawn', force=True)
+        from multiprocessing import get_start_method
+
+        self.logger.success(f' Process will be started with {get_start_method()}')
         self.worker.start()
         if not self.args.noblock_on_start:
             self.wait_start_success()
