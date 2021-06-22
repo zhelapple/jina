@@ -27,8 +27,6 @@ class BasePea:
 
     def __init__(self, args: 'argparse.Namespace'):
         super().__init__()  #: required here to call process/thread __init__
-        if hasattr(args, 'routing_graph'):
-            print(f' routing graph')
         self.worker = {
             RuntimeBackendType.THREAD: threading.Thread,
             RuntimeBackendType.PROCESS: multiprocessing.Process,
@@ -36,8 +34,6 @@ class BasePea:
             target=self.run
         )
         self.args = args
-        # if hasattr(self.args, 'routing_graph'):
-        #     del self.args.routing_graph
         self.daemon = args.daemon  #: required here to set process/thread daemon
 
         self.name = self.args.name or self.__class__.__name__
@@ -89,7 +85,7 @@ class BasePea:
         print(
             f' os.env {os.environ.get("JINA_PEA_START_METHOD")} and {get_start_method()} '
         )
-        if os.environ.get('JINA_PEA_START_METHOD', None) == 'spawn':
+        if True or os.environ.get('JINA_PEA_START_METHOD', None) == 'spawn':
             from multiprocessing import set_start_method as _set_start_method
 
             _set_start_method('spawn', force=True)
