@@ -18,7 +18,19 @@ from tests import random_docs, validate_callback
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-def test_flow_with_jump(tmpdir):
+@pytest.fixture()
+def pea_start_method(request):
+    import os
+
+    os.environ['JINA_PEA_START_METHOD'] = request.param
+    yield
+    os.unsetenv('JINA_PEA_START_METHOD')
+
+
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_flow_with_jump(tmpdir, pea_start_method):
     def _validate(f):
         node = f._pod_nodes['gateway']
         assert node.head_args.socket_in == SocketType.ROUTER_BIND
@@ -78,7 +90,10 @@ def test_flow_with_jump(tmpdir):
 
 
 @pytest.mark.parametrize('protocol', ['websocket', 'grpc', 'http'])
-def test_simple_flow(protocol):
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_simple_flow(protocol, pea_start_method):
     bytes_gen = (Document() for _ in range(10))
 
     def bytes_fn():
@@ -112,7 +127,10 @@ def test_simple_flow(protocol):
         assert node.peas_args['peas'][0] == node.tail_args
 
 
-def test_flow_identical(tmpdir):
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_flow_identical(tmpdir, pea_start_method):
     with open(os.path.join(cur_dir, '../yaml/test-flow.yml')) as fp:
         a = Flow.load_config(fp)
 
@@ -165,7 +183,10 @@ def test_flow_identical(tmpdir):
 
 
 @pytest.mark.parametrize('protocol', ['websocket', 'grpc', 'http'])
-def test_flow_no_container(protocol):
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_flow_no_container(protocol, pea_start_method):
     f = Flow(protocol=protocol).add(
         name='dummyEncoder',
         uses=os.path.join(cur_dir, '../mwu-encoder/mwu_encoder.yml'),
@@ -182,7 +203,10 @@ def docpb_workspace(tmpdir):
     del os.environ['TEST_DOCSHARD_WORKSPACE']
 
 
-def test_py_client():
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_py_client(pea_start_method):
     f = (
         Flow()
         .add(name='r1')
@@ -242,7 +266,10 @@ def test_py_client():
             assert node.peas_args['peas'][0] == node.tail_args
 
 
-def test_dry_run_with_two_pathways_diverging_at_gateway():
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_dry_run_with_two_pathways_diverging_at_gateway(pea_start_method):
     f = Flow().add(name='r2').add(name='r3', needs='gateway').join(['r2', 'r3'])
 
     with f:
@@ -263,7 +290,10 @@ def test_dry_run_with_two_pathways_diverging_at_gateway():
             assert node.peas_args['peas'][0] == node.tail_args
 
 
-def test_dry_run_with_two_pathways_diverging_at_non_gateway():
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_dry_run_with_two_pathways_diverging_at_non_gateway(pea_start_method):
     f = (
         Flow()
         .add(name='r1')
@@ -294,7 +324,10 @@ def test_dry_run_with_two_pathways_diverging_at_non_gateway():
             assert node.peas_args['peas'][0] == node.tail_args
 
 
-def test_refactor_num_part():
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_refactor_num_part(pea_start_method):
     f = (
         Flow()
         .add(name='r1', needs='gateway')
@@ -320,7 +353,10 @@ def test_refactor_num_part():
             assert node.peas_args['peas'][0] == node.tail_args
 
 
-def test_refactor_num_part_proxy():
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_refactor_num_part_proxy(pea_start_method):
     f = (
         Flow()
         .add(name='r1')
@@ -352,7 +388,10 @@ def test_refactor_num_part_proxy():
 
 
 @pytest.mark.parametrize('protocol', ['websocket', 'grpc', 'http'])
-def test_refactor_num_part_proxy_2(protocol):
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_refactor_num_part_proxy_2(protocol, pea_start_method):
     f = (
         Flow(protocol=protocol)
         .add(name='r1')
@@ -366,7 +405,10 @@ def test_refactor_num_part_proxy_2(protocol):
 
 
 @pytest.mark.parametrize('protocol', ['websocket', 'grpc', 'http'])
-def test_refactor_num_part_2(protocol):
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_refactor_num_part_2(protocol, pea_start_method):
     f = Flow(protocol=protocol).add(
         name='r1', needs='gateway', parallel=3, polling='ALL'
     )
@@ -388,7 +430,10 @@ def datauri_workspace(tmpdir):
 
 
 @pytest.mark.parametrize('protocol', ['websocket', 'grpc', 'http'])
-def test_flow_with_publish_driver(mocker, protocol):
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_flow_with_publish_driver(mocker, protocol, pea_start_method):
     from jina import Executor, requests
 
     class DummyOneHotTextEncoder(Executor):
@@ -419,7 +464,10 @@ def test_flow_with_publish_driver(mocker, protocol):
 
 
 @pytest.mark.parametrize('protocol', ['websocket', 'grpc', 'http'])
-def test_flow_arbitrary_needs(protocol):
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_flow_arbitrary_needs(protocol, pea_start_method):
     f = (
         Flow(protocol=protocol)
         .add(name='p1')
@@ -438,7 +486,10 @@ def test_flow_arbitrary_needs(protocol):
 
 
 @pytest.mark.parametrize('protocol', ['websocket', 'grpc', 'http'])
-def test_flow_needs_all(protocol):
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_flow_needs_all(protocol, pea_start_method):
     f = Flow(protocol=protocol).add(name='p1', needs='gateway').needs_all(name='r1')
     assert f._pod_nodes['r1'].needs == {'p1'}
 
@@ -471,8 +522,11 @@ def test_flow_needs_all(protocol):
         f.index(from_ndarray(np.random.random([10, 10])))
 
 
-def test_flow_with_pod_envs():
-    f = Flow.load_config('yaml/flow-with-envs.yml')
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_flow_with_pod_envs(pea_start_method):
+    f = Flow.load_config(os.path.join(cur_dir, 'yaml/flow-with-envs.yml'))
 
     class EnvChecker1(BaseExecutor):
         """Class used in Flow YAML"""
@@ -502,7 +556,10 @@ def test_flow_with_pod_envs():
 
 @pytest.mark.parametrize('return_results', [False, True])
 @pytest.mark.parametrize('protocol', ['websocket', 'grpc', 'http'])
-def test_return_results_sync_flow(return_results, protocol):
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_return_results_sync_flow(return_results, protocol, pea_start_method):
     with Flow(protocol=protocol, return_results=return_results).add() as f:
         r = f.index(from_ndarray(np.random.random([10, 2])))
         if return_results:
@@ -564,7 +621,10 @@ def test_flow_identity():
     assert list(f.identity.values())[0] == new_id
 
 
-def test_flow_identity_override():
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_flow_identity_override(pea_start_method):
     f = Flow().add().add(parallel=2).add(parallel=2)
 
     with f:
@@ -595,7 +655,10 @@ pods:
                 assert p.name == 'gateway'
 
 
-def test_bad_pod_graceful_termination():
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_bad_pod_graceful_termination(pea_start_method):
     def asset_bad_flow(f):
         with pytest.raises(RuntimeFailToStart):
             with f:
@@ -620,7 +683,10 @@ def test_bad_pod_graceful_termination():
     asset_bad_flow(Flow().add().add(host='hello-there').add())
 
 
-def test_socket_types_2_remote_one_local():
+@pytest.mark.parametrize(
+    'pea_start_method', ['fork', 'spawn'], indirect=['pea_start_method']
+)
+def test_socket_types_2_remote_one_local(pea_start_method):
     f = (
         Flow()
         .add(name='pod1', host='0.0.0.1')
@@ -723,7 +789,6 @@ def test_flow_empty_data_request(mocker):
 
 
 def test_flow_common_kwargs():
-
     with Flow(name='hello', something_random=True).add() as f:
         assert f._common_kwargs == {'something_random': True}
 

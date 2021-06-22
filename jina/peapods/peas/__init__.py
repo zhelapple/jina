@@ -27,6 +27,8 @@ class BasePea:
 
     def __init__(self, args: 'argparse.Namespace'):
         super().__init__()  #: required here to call process/thread __init__
+        if hasattr(args, 'routing_graph'):
+            print(f' routing graph')
         self.worker = {
             RuntimeBackendType.THREAD: threading.Thread,
             RuntimeBackendType.PROCESS: multiprocessing.Process,
@@ -34,6 +36,8 @@ class BasePea:
             target=self.run
         )
         self.args = args
+        # if hasattr(self.args, 'routing_graph'):
+        #     del self.args.routing_graph
         self.daemon = args.daemon  #: required here to set process/thread daemon
 
         self.name = self.args.name or self.__class__.__name__
