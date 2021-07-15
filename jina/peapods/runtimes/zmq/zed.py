@@ -54,6 +54,7 @@ class ZEDRuntime(ZMQRuntime):
         # idle_dealer_ids only becomes non-None when it receives IDLE ControlRequest
         self._idle_dealer_ids = set()
 
+        self.logger.debug(f'in zed runtime')
         self._load_zmqstreamlet()
         self._load_plugins()
         self._load_executor()
@@ -80,6 +81,7 @@ class ZEDRuntime(ZMQRuntime):
             ctrl_addr=self.ctrl_addr,
             ready_event=self.is_ready_event,
         )
+        self.logger.info(f'_load_zmqstreamlet done')
 
     def _load_executor(self):
         """Load the executor to this runtime, specified by ``uses`` CLI argument."""
@@ -90,6 +92,7 @@ class ZEDRuntime(ZMQRuntime):
                 override_metas=self.args.override_metas,
                 runtime_args=vars(self.args),
             )
+            self.logger.info(f'_load_executor done')
         except BadConfigSource as ex:
             self.logger.error(
                 f'fail to load config from {self.args.uses}, if you are using docker image for --uses, '
@@ -124,6 +127,7 @@ class ZEDRuntime(ZMQRuntime):
         :param msg: received message
         :return: `ZEDRuntime`
         """
+        self.logger.info(f'in _pre_hook before add route')
         msg.add_route(self.name, self._id)
         self._request = msg.request
         self._message = msg
@@ -296,7 +300,9 @@ class ZEDRuntime(ZMQRuntime):
 
     def _callback(self, msg: 'Message'):
         self.is_post_hook_done = False  #: if the post_hook is called
+        self.logger.info(f'in _callback')
         self._pre_hook(msg)._handle()._post_hook(msg)
+        self.logger.info(f'after _callback')
         self.is_post_hook_done = True
         return msg
 
@@ -310,7 +316,9 @@ class ZEDRuntime(ZMQRuntime):
         try:
             # notice how executor related exceptions are handled here
             # generally unless executor throws an OSError, the exception are caught and solved inplace
+            self.logger.info(f'in _msg_callback1')
             processed_msg = self._callback(msg)
+            self.logger.info(f'in _msg_callback2')
             # dont sent responses for CANCEL and IDLE control requests
             if msg.is_data_request or msg.request.command not in ['CANCEL', 'IDLE']:
                 self._zmqstreamlet.send_message(processed_msg)
