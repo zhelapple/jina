@@ -599,16 +599,27 @@ class ZmqStreamlet(Zmqlet):
             if msg:
                 self.send_message(msg)
 
+        logger.debug(f'before _in_sock_callback')
         self._in_sock_callback = lambda x: _callback(x, self.in_sock_type)
+        logger.debug(f'after _in_sock_callback: {self._in_sock_callback}')
         self.in_sock.on_recv(self._in_sock_callback)
+        logger.debug(f'after self.in_sock.on_recv')
         self.ctrl_sock.on_recv(lambda x: _callback(x, self.ctrl_sock_type))
+        logger.debug(f'after self.ctrl_sock.on_recv')
+
         if self.out_sock_type == zmq.ROUTER and not self.args.dynamic_routing_out:
+            logger.debug(f'in self.out_sock_type == zmq.ROUTER')
             self.out_sock.on_recv(lambda x: _callback(x, self.out_sock_type))
+            logger.debug(f'after self.out_sock.on_recv')
         if self.in_connect_sock is not None:
+            logger.debug(f'in self.in_connect_sock is not None')
             self.in_connect_sock.on_recv(
                 lambda x: _callback(x, SocketType.ROUTER_CONNECT)
             )
+            logger.debug(f'after self.in_connect_sock.on_recv')
+        logger.debug(f'before start')
         self.io_loop.start()
+        logger.debug(f'after start')
         self.io_loop.clear_current()
         self.io_loop.close(all_fds=True)
 
