@@ -661,7 +661,9 @@ def send_message(
     num_bytes = 0
     try:
         _prep_send_socket(sock, timeout)
+        print(f'in send_message, before, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}')
         sock.send_multipart(msg.dump())
+        print(f'in send_message, after, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}')
         num_bytes = msg.size
     except zmq.error.Again:
         raise TimeoutError(
@@ -709,7 +711,13 @@ async def send_message_async(
     """
     try:
         _prep_send_socket(sock, timeout)
+        print(
+            f'in send_message_async, before, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+        )
         await sock.send_multipart(msg.dump())
+        print(
+            f'in send_message_async, after, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+        )
         return msg.size
     except zmq.error.Again:
         raise TimeoutError(
@@ -742,7 +750,9 @@ def recv_message(sock: 'zmq.Socket', timeout: int = -1, **kwargs) -> 'Message':
     """
     try:
         _prep_recv_socket(sock, timeout)
+        print(f'in recv_message, before, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}')
         msg_data = sock.recv_multipart()
+        print(f'in recv_message, after, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}')
         return _parse_from_frames(sock.type, msg_data)
 
     except zmq.error.Again:
@@ -772,7 +782,13 @@ async def recv_message_async(
 
     try:
         _prep_recv_socket(sock, timeout)
+        print(
+            f'in recv_message_async, before, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+        )
         msg_data = await sock.recv_multipart()
+        print(
+            f'in recv_message_async, after, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+        )
         return _parse_from_frames(sock.type, msg_data)
 
     except zmq.error.Again:
