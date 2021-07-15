@@ -300,7 +300,13 @@ class Zmqlet:
         return out_sock
 
     def _get_dynamic_out_socket(self, target_pod, as_streaming=False):
+        self.logger.info(
+            f'inside _get_dynamic_out_socket before calling get_connect_host. target_pod.host is {target_pod.host}'
+        )
         host = get_connect_host(target_pod.host, False, self.args)
+        self.logger.info(
+            f'inside _get_dynamic_out_socket after calling get_connect_host. host: {host}'
+        )
         out_sock = self._init_dynamic_out_socket(host, target_pod.port)
 
         if as_streaming:
