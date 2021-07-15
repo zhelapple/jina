@@ -590,14 +590,20 @@ class ZmqStreamlet(Zmqlet):
         """
 
         def _callback(msg, sock_type):
+            self.logger.debug(f'in _callback1')
             msg = _parse_from_frames(sock_type, msg)
+            self.logger.debug(f'in _callback2 {msg}')
             self.bytes_recv += msg.size
             self.msg_recv += 1
 
             msg = callback(msg)
+            self.logger.debug(f'in _callback3 {msg}')
 
             if msg:
+                self.logger.debug(f'in _callback4')
                 self.send_message(msg)
+                self.logger.debug(f'in _callback5')
+            self.logger.debug(f'in _callback6')
 
         logger.debug(f'before _in_sock_callback')
         self._in_sock_callback = lambda x: _callback(x, self.in_sock_type)

@@ -61,6 +61,7 @@ class ZEDRuntime(ZMQRuntime):
 
     def run_forever(self):
         """Start the `ZmqStreamlet`."""
+        self.logger.debug(f'in run_forever before zmqstreamlet.start')
         self._zmqstreamlet.start(self._msg_callback)
 
     def teardown(self):
