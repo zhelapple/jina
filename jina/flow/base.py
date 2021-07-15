@@ -816,6 +816,7 @@ class Flow(PostMixin, JAMLCompatible, ExitStack, metaclass=FlowType):
 
     def _set_initial_dynamic_routing_table(self):
         routing_table = self._get_routing_table()
+        print(f'routing_table is {routing_table}')
         if not routing_table.is_acyclic():
             raise RoutingTableCyclicError(
                 'The routing graph has a cycle. This would result in an infinite loop. Fix your Flow setup.'

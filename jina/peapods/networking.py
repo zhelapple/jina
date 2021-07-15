@@ -75,20 +75,31 @@ def get_connect_host(
         not bind_local and not conn_local and (bind_host == connect_args.host)
     )
 
+    print(f'runs_in_docker is {runs_in_docker}')
+    print(f'bind_local is {runs_in_docker}')
+    print(f'conn_local is {runs_in_docker}')
+    print(f'conn_docker is {runs_in_docker}')
+    print(f'bind_conn_same_remote is {runs_in_docker}')
+
     # pod1 in local, pod2 in local (conn_docker if pod2 in docker)
     if bind_local and conn_local:
+        print('inside "bind_local and conn_local"')
         return __docker_host__ if conn_docker else __default_host__
 
     # pod1 and pod2 are remote but they are in the same host (pod2 is local w.r.t pod1)
     if bind_conn_same_remote:
+        print('inside "bind_conn_same_remote"')
         return __docker_host__ if conn_docker else __default_host__
 
     if bind_local and not conn_local:
         # in this case we are telling CONN (at remote) our local ip address
         if connect_args.host.startswith('localhost'):
             # this is for the "psuedo" remote tests to pass
+            print('inside "connect_args.host.startswith(\'localhost\')"')
             return __docker_host__
+        print('inside "bind_local and not conn_local"')
         return get_public_ip() if bind_expose_public else get_internal_ip()
     else:
         # in this case we (at local) need to know about remote the BIND address
+        print('inside last else')
         return bind_host
