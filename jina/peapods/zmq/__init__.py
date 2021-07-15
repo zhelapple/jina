@@ -329,14 +329,18 @@ class Zmqlet:
                 out_socket = self.out_sock
             else:
                 out_socket = self.out_sockets.get(pod_address, None)
+                logger.info(f'in _get_dynamic_next_routes. out_socket is {out_socket}')
                 if out_socket is None:
                     out_socket = self._get_dynamic_out_socket(target.active_target_pod)
+                    logger.info(f'in _get_dynamic_next_routes. out_socket is {out_socket}')
 
+            logger.info(f'out_socket is {out_socket.getsockopt_string(zmq.LAST_ENDPOINT)}')
             next_routes.append((target, out_socket))
         return next_routes
 
     def _send_message_dynamic(self, msg: 'Message'):
         next_routes = self._get_dynamic_next_routes(msg)
+        logger.info(f'next_routes is {next_routes}')
         for routing_table, out_sock in next_routes:
             new_envelope = jina_pb2.EnvelopeProto()
             new_envelope.CopyFrom(msg.envelope)

@@ -139,7 +139,8 @@ def _start_fluentd():
             universal_newlines=True,
         )
         for line in fluentd_proc.stdout:
-            daemon_logger.debug(f'fluentd: {line.strip()}')
+            pass
+            # daemon_logger.debug(f'fluentd: {line.strip()}')
     except FileNotFoundError:
         daemon_logger.warning('fluentd not found locally, jinad cannot stream logs!')
         jinad_args.no_fluentd = True

@@ -1,5 +1,3 @@
-import os
-import signal
 from argparse import Namespace
 
 from jina import Flow, __docker_host__
@@ -56,6 +54,7 @@ class PartialPeaStore(PartialStore):
         :param kwargs: keyword args
         :return: Item describing the Pea object
         """
+        self._logger.info(f'PartialPeaStore.add: args is {args}')
         try:
             _id = args.identity
             # This is set so that ContainerRuntime sets host_ctrl to __docker_host__
