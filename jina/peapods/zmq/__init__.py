@@ -321,6 +321,7 @@ class Zmqlet:
     def _get_dynamic_next_routes(self, message):
         routing_table = RoutingTable(message.envelope.routing_table)
         next_targets = routing_table.get_next_targets()
+        logger.warning(f'next_targets is {next_targets}')
         next_routes = []
         for target, send_as_bind in next_targets:
             pod_address = target.active_target_pod.full_address
@@ -939,6 +940,7 @@ def _init_socket(
         # note that ssh only takes effect on CONNECT, not BIND
         # that means control socket setup does not need ssh
         _connect_socket(sock, address, ssh_server, ssh_keyfile, ssh_password)
+        logger.warning(f'here in init socket {sock.socket_type} {socket_type.name} {sock.getsockopt_string(zmq.LAST_ENDPOINT)}')
 
     if socket_type in {SocketType.SUB_CONNECT, SocketType.SUB_BIND}:
         # sock.setsockopt(zmq.SUBSCRIBE, identity.encode('ascii') if identity else b'')
@@ -954,7 +956,10 @@ def _connect_socket(
     ssh_keyfile: Optional[str] = None,
     ssh_password: Optional[str] = None,
 ):
+    logger.warning(f'address is  {address}')
     if ssh_server is not None:
+        logger.warning(f'in if')
         tunnel_connection(sock, address, ssh_server, ssh_keyfile, ssh_password)
     else:
+        logger.warning(f'in else')
         sock.connect(address)

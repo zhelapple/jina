@@ -802,8 +802,9 @@ class Flow(PostMixin, JAMLCompatible, ExitStack, metaclass=FlowType):
                     start = f'start-{GATEWAY_NAME}'
 
                 start_pod = graph._get_target_pod(start)
+                self.logger.warning(f'start_pod.host {start_pod.host} pod.head_host {pod.head_host}')
                 if is_remote_local_connection(start_pod.host, pod.head_host):
-                    self.logger.debug(
+                    self.logger.warning(
                         f'inside flow base is_remote_local_connection if block'
                     )
                     pod.head_args.hosts_in_connect.append(
@@ -812,7 +813,7 @@ class Flow(PostMixin, JAMLCompatible, ExitStack, metaclass=FlowType):
 
                     graph.add_edge(start, end, True)
                 else:
-                    self.logger.debug(
+                    self.logger.warning(
                         f'inside flow base is_remote_local_connection else block'
                     )
                     graph.add_edge(start, end)
