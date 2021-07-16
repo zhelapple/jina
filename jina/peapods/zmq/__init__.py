@@ -686,11 +686,11 @@ def send_message(
     try:
         _prep_send_socket(sock, timeout)
         logger.info(
-            f'in send_message, before, {sock.socket_type} {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+            f'in send_message, before, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
         )
         sock.send_multipart(msg.dump())
         logger.info(
-            f'in send_message, after, {sock.socket_type} {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+            f'in send_message, after, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
         )
         num_bytes = msg.size
     except zmq.error.Again:
@@ -740,11 +740,11 @@ async def send_message_async(
     try:
         _prep_send_socket(sock, timeout)
         logger.info(
-            f'in send_message_async, before, {sock.socket_type} {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+            f'in send_message_async, before, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
         )
         await sock.send_multipart(msg.dump())
         logger.info(
-            f'in send_message_async, after, {sock.socket_type} {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+            f'in send_message_async, after, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
         )
         return msg.size
     except zmq.error.Again:
@@ -779,11 +779,11 @@ def recv_message(sock: 'zmq.Socket', timeout: int = -1, **kwargs) -> 'Message':
     try:
         _prep_recv_socket(sock, timeout)
         logger.info(
-            f'in recv_message, before, {sock.socket_type} {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+            f'in recv_message, before, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
         )
         msg_data = sock.recv_multipart()
         logger.info(
-            f'in recv_message, after, {sock.socket_type} {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+            f'in recv_message, after, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
         )
         return _parse_from_frames(sock.type, msg_data)
 
@@ -815,11 +815,11 @@ async def recv_message_async(
     try:
         _prep_recv_socket(sock, timeout)
         logger.info(
-            f'in recv_message_async, before, {sock.socket_type} {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+            f'in recv_message_async, before, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
         )
         msg_data = await sock.recv_multipart()
         logger.info(
-            f'in recv_message_async, after, {sock.socket_type} {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
+            f'in recv_message_async, after, {sock.getsockopt_string(zmq.LAST_ENDPOINT)}'
         )
         return _parse_from_frames(sock.type, msg_data)
 
