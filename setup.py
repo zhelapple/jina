@@ -6,6 +6,7 @@ from setuptools import find_packages
 from setuptools import setup
 from setuptools.command.develop import develop
 from setuptools.command.install import install
+from Cython.Build import cythonize
 
 if sys.version_info >= (3, 10, 0) or sys.version_info < (3, 7, 0):
     raise OSError(f'Jina requires Python 3.7/3.8/3.9, but yours is {sys.version}')
@@ -195,4 +196,5 @@ setup(
     },
     keywords='jina cloud-native neural-search query search index elastic neural-network encoding '
     'embedding serving docker container image video audio deep-learning',
+    ext_modules=cythonize("jina/types/arrays/*.pyx", annotate=True),
 )

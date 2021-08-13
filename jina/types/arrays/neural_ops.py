@@ -6,7 +6,7 @@ import numpy as np
 from ... import Document
 from ...importer import ImportExtensions
 from ...math.helper import top_k, minmax_normalize, update_rows_x_mat_best
-from ...logging.predefined import default_logger
+from .cython_module import Foo
 
 if False:
     from .document import DocumentArray
@@ -52,7 +52,8 @@ class DocumentArrayNeuralOpsMixin:
                            will be slower but more memory efficient. Specialy indicated if `darray` is a big
                            DocumentArrayMemmap.
         """
-
+        a = Foo()
+        print(f' a.bar {a.call()}')
         if callable(metric):
             cdist = metric
         elif isinstance(metric, str):
