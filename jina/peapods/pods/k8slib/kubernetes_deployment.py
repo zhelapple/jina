@@ -26,6 +26,7 @@ def deploy_service(
     replicas: int,
     pull_policy: str,
     init_container: Dict = None,
+    custom_resource_dir: Optional[str] = None,
 ) -> str:
     """Deploy service on Kubernetes.
 
@@ -38,6 +39,8 @@ def deploy_service(
     :param replicas: number of replicas
     :param pull_policy: pull policy used for fetching the Docker images from the registry.
     :param init_container: additional arguments used for the init container
+    :param custom_resource_dir: Path to a folder containing the kubernetes yml template files.
+        Defaults to the standard location jina.resources if not specified.
     :return: dns name of the created service
     """
 
@@ -62,6 +65,7 @@ def deploy_service(
             'port_ctrl': port_ctrl,
             'type': 'ClusterIP',
         },
+        custom_resource_dir=custom_resource_dir,
     )
 
     logger.info(
@@ -69,40 +73,28 @@ def deploy_service(
     )
 
     if init_container:
-        kubernetes_tools.create(
-            'deployment-init',
-            {
-                'name': name,
-                'namespace': namespace,
-                'image': image_name,
-                'replicas': replicas,
-                'command': container_cmd,
-                'args': container_args,
-                'port_expose': port_expose,
-                'port_in': port_in,
-                'port_out': port_out,
-                'port_ctrl': port_ctrl,
-                'pull_policy': pull_policy,
-                **init_container,
-            },
-        )
+        template_name = 'deployment-init'
     else:
-        kubernetes_tools.create(
-            'deployment',
-            {
-                'name': name,
-                'namespace': namespace,
-                'image': image_name,
-                'replicas': replicas,
-                'command': container_cmd,
-                'args': container_args,
-                'port_expose': port_expose,
-                'port_in': port_in,
-                'port_out': port_out,
-                'port_ctrl': port_ctrl,
-                'pull_policy': pull_policy,
-            },
-        )
+        template_name = 'deployment'
+        init_container = {}
+    kubernetes_tools.create(
+        template_name,
+        {
+            'name': name,
+            'namespace': namespace,
+            'image': image_name,
+            'replicas': replicas,
+            'command': container_cmd,
+            'args': container_args,
+            'port_expose': port_expose,
+            'port_in': port_in,
+            'port_out': port_out,
+            'port_ctrl': port_ctrl,
+            'pull_policy': pull_policy,
+            **init_container,
+        },
+        custom_resource_dir=custom_resource_dir,
+    )
     return f'{name}.{namespace}.svc.cluster.local'
 
 
