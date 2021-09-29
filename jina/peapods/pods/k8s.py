@@ -287,7 +287,7 @@ class K8sPod(BasePod):
             uses = self.args.uses
             if num_shards > 1:
                 shard_names = [
-                    f'{args.name}/shard-{i}'
+                    f'{self.name}/shard-{i}'
                     for i, args in enumerate(self.deployment_args['deployments'])
                 ]
                 for shard_name in shard_names:
