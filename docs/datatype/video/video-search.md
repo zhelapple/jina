@@ -1,4 +1,4 @@
-# Search in-Video Visual Content via Text
+# Search In-Video Visual Content via Text
 
 ```{article-info}
 :avatar: avatars/nan.jpg

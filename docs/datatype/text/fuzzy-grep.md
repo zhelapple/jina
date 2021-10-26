@@ -1,12 +1,4 @@
-# Fuzzy `grep` in 30 Lines
-
-```{article-info}
-:avatar: avatars/han.jpg
-:avatar-link: https://jobs.jina.ai
-:avatar-outline: muted
-:author: Han @ Jina AI
-:date: July 15, 2021
-```
+# Fuzzy String Match
 
 ````{admonition} Different behavior on Jupyter Notebook
 :class: warning

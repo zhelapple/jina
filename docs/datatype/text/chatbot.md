@@ -1,13 +1,4 @@
-# Simple Chatbot in Jina
-
-```{article-info}
-:avatar: avatars/susana.jpg
-:avatar-link: https://jobs.jina.ai
-:avatar-outline: muted
-:author: Susana @ Jina AI
-:date: June 15, 2021
-```
-
+# Question-Answer Chatbot
 
 We will use the {ref}`hello world chatbot <chatbot-helloworld>` for this tutorial. You can find the complete code [here](https://github.com/jina-ai/jina/tree/master/jina/helloworld/chatbot) and we will go step by step.
 
