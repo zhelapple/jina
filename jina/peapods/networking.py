@@ -7,11 +7,11 @@ from argparse import Namespace
 from threading import Thread
 from typing import TYPE_CHECKING, Optional
 
-import grpc
-
 from jina.logging.logger import JinaLogger
 from jina.proto import jina_pb2_grpc
 from jina.types.message import Message
+
+import grpc
 
 from .. import __default_host__, __docker_host__
 from ..helper import get_internal_ip, get_or_reuse_loop, get_public_ip
@@ -283,35 +283,42 @@ class K8sGrpcConnectionPool(GrpcConnectionPool):
         )
 
     def _process_item(self, item):
-        deployment_name = item.metadata.labels["app"]
-        is_deleted = item.metadata.deletion_timestamp is not None
+        try:
+            deployment_name = item.metadata.labels["app"]
+            is_deleted = item.metadata.deletion_timestamp is not None
 
-        if not is_deleted and self._pod_is_up(item) and self._pod_is_ready(item):
-            if deployment_name in self._deployment_clusteraddresses:
-                self._add_pod_connection(deployment_name, item)
-            else:
-                try:
-                    cluster_ip, port = self._find_cluster_ip(deployment_name)
-                    if cluster_ip:
-                        self._deployment_clusteraddresses[
-                            deployment_name
-                        ] = f'{cluster_ip}:{port}'
-                        self._connections[f'{cluster_ip}:{port}'] = ConnectionList(port)
-                        self._add_pod_connection(deployment_name, item)
-                    else:
+            if not is_deleted and self._pod_is_up(item) and self._pod_is_ready(item):
+                if deployment_name in self._deployment_clusteraddresses:
+                    self._add_pod_connection(deployment_name, item)
+                else:
+                    try:
+                        cluster_ip, port = self._find_cluster_ip(deployment_name)
+                        if cluster_ip:
+                            self._deployment_clusteraddresses[
+                                deployment_name
+                            ] = f'{cluster_ip}:{port}'
+                            self._connections[f'{cluster_ip}:{port}'] = ConnectionList(
+                                port
+                            )
+                            self._add_pod_connection(deployment_name, item)
+                        else:
+                            self._logger.debug(
+                                f'Observed state change in unknown deployment {deployment_name}'
+                            )
+                    except (KeyError, ValueError):
                         self._logger.debug(
-                            f'Observed state change in unknown deployment {deployment_name}'
+                            f'Ignoring changes to non Jina resource {item.metadata.name}'
                         )
-                except (KeyError, ValueError):
-                    self._logger.debug(
-                        f'Ignoring changes to non Jina resource {item.metadata.name}'
-                    )
-        elif (
-            is_deleted
-            and self._pod_is_up(item)
-            and deployment_name in self._deployment_clusteraddresses
-        ):
-            self._remove_pod_connection(deployment_name, item)
+            elif (
+                is_deleted
+                and self._pod_is_up(item)
+                and deployment_name in self._deployment_clusteraddresses
+            ):
+                self._remove_pod_connection(deployment_name, item)
+        except Exception as e:
+            self._logger.error(
+                f'got an exception while processing item {item} {e!r}, ignoring..'
+            )
 
     def _remove_pod_connection(self, deployment_name, item):
         target = item.status.pod_ip
