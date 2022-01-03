@@ -9,28 +9,28 @@ from pathlib import Path
 from typing import Optional
 from urllib.parse import urlencode
 
-from . import HubExecutor
-from .helper import (
-    archive_package,
-    download_with_resume,
-    parse_hub_uri,
-    get_hubble_url,
-    upload_file,
-    disk_cache_offline,
-)
-from .hubapi import (
-    install_local,
-    get_dist_path_of_executor,
-    load_secret,
-    dump_secret,
-    get_lockfile,
-    install_package_dependencies,
-)
 from .. import __resources_path__
 from ..helper import ArgNamespace, colored, get_request_header
 from ..importer import ImportExtensions
 from ..logging.logger import JinaLogger
 from ..parsers.hubble import set_hub_parser
+from . import HubExecutor
+from .helper import (
+    archive_package,
+    disk_cache_offline,
+    download_with_resume,
+    get_hubble_url,
+    parse_hub_uri,
+    upload_file,
+)
+from .hubapi import (
+    dump_secret,
+    get_dist_path_of_executor,
+    get_lockfile,
+    install_local,
+    install_package_dependencies,
+    load_secret,
+)
 
 _cache_file = Path.home().joinpath('.jina', 'disk_cache.db')
 
@@ -59,9 +59,9 @@ class HubIO:
         self.logger = JinaLogger(self.__class__.__name__, **vars(args))
 
         with ImportExtensions(required=True):
-            import rich
             import cryptography
             import filelock
+            import rich
 
             assert rich  #: prevent pycharm auto remove the above line
             assert cryptography
@@ -70,13 +70,13 @@ class HubIO:
     def new(self) -> None:
         """Create a new executor folder interactively."""
 
-        from rich import print, box
-        from rich.prompt import Prompt, Confirm
-        from rich.panel import Panel
-        from rich.table import Table
+        from rich import box, print
         from rich.console import Console
+        from rich.panel import Panel
         from rich.progress import track
+        from rich.prompt import Confirm, Prompt
         from rich.syntax import Syntax
+        from rich.table import Table
 
         console = Console()
 
@@ -449,8 +449,8 @@ metas:
     def _prettyprint_result(self, console, result):
         # TODO: only support single executor now
 
-        from rich.table import Table
         from rich.panel import Panel
+        from rich.table import Table
 
         data = result.get('data', None)
         image = data['executors'][0]
@@ -591,7 +591,7 @@ with f:
         )
 
     def _pull_with_progress(self, log_streams, console):
-        from rich.progress import Progress, DownloadColumn, BarColumn
+        from rich.progress import BarColumn, DownloadColumn, Progress
 
         with Progress(
             "[progress.description]{task.description}",
@@ -630,8 +630,8 @@ with f:
 
     def _load_docker_client(self):
         with ImportExtensions(required=True):
-            import docker.errors
             import docker
+            import docker.errors
             from docker import APIClient
 
             from .. import __windows__

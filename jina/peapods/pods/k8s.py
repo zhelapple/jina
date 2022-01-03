@@ -2,14 +2,15 @@ import copy
 import os
 import time
 from argparse import Namespace
-from typing import Optional, Dict, Union, Set, List, Iterable
+from typing import Dict, Iterable, List, Optional, Set, Union
 
 import jina
-from .k8slib import kubernetes_deployment, kubernetes_client
-from ..pods import BasePod
+
 from ... import __default_executor__
-from ...logging.logger import JinaLogger
 from ...excepts import RuntimeFailToStart
+from ...logging.logger import JinaLogger
+from ..pods import BasePod
+from .k8slib import kubernetes_client, kubernetes_deployment
 
 
 class K8sPod(BasePod):
@@ -46,6 +47,7 @@ class K8sPod(BasePod):
                 if test_pip
                 else f'jinaai/jina:{self.version}-py38-standard'
             )
+            image_name = os.getenv('CUSTOM_GATEWAY_IMAGE', image_name)
             kubernetes_deployment.deploy_service(
                 self.dns_name,
                 namespace=self.k8s_namespace,
@@ -56,7 +58,7 @@ class K8sPod(BasePod):
                 f'{kubernetes_deployment.get_cli_params(self.common_args, ("pod_role",))}]',
                 logger=JinaLogger(f'deploy_{self.name}'),
                 replicas=1,
-                pull_policy='IfNotPresent',
+                pull_policy='Always',
                 port_expose=self.common_args.port_expose,
             )
 
@@ -119,7 +121,7 @@ class K8sPod(BasePod):
                 container_args=container_args,
                 logger=JinaLogger(f'deploy_{self.name}'),
                 replicas=self.num_replicas,
-                pull_policy='IfNotPresent',
+                pull_policy='Always',
                 init_container=init_container_args,
                 env=self.deployment_args.env,
                 gpus=self.deployment_args.gpus,
@@ -140,7 +142,7 @@ class K8sPod(BasePod):
                 container_args=container_args,
                 logger=JinaLogger(f'restart_{self.name}'),
                 replicas=self.num_replicas,
-                pull_policy='IfNotPresent',
+                pull_policy='Always',
                 custom_resource_dir=getattr(
                     self.common_args, 'k8s_custom_resource_dir', None
                 ),
@@ -196,8 +198,9 @@ class K8sPod(BasePod):
             if previous_uids is None:
                 previous_uids = []
 
-            from kubernetes import client
             import asyncio
+
+            from kubernetes import client
 
             k8s_client = kubernetes_client.K8sClients().apps_v1
 
@@ -265,6 +268,7 @@ class K8sPod(BasePod):
                 _timeout /= 1e3
 
             import asyncio
+
             from kubernetes import client
 
             with JinaLogger(f'waiting_scale_for_{self.name}') as logger:
