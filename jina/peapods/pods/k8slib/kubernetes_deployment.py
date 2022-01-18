@@ -1,6 +1,7 @@
 import json
 from argparse import Namespace
-from typing import Dict, Optional, Tuple, Union
+import os
+from typing import Dict, List, Optional, Tuple, Union
 
 from jina.hubble.helper import parse_hub_uri
 from jina.hubble.hubio import HubIO
@@ -167,6 +168,8 @@ def deploy_service(
         'port_ctrl': port_ctrl,
         'pull_policy': pull_policy,
     }
+    if 'common_workspace' in os.environ:
+        deployment_params.update({'common_workspace': os.environ['common_workspace']})
 
     if init_container:
         template_name = 'deployment-init'

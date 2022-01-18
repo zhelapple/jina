@@ -94,9 +94,10 @@ class K8sPod(BasePod):
             return kubernetes_deployment.get_init_container_args(self.common_args)
 
         def _get_container_args(self):
-            uses_metas = kubernetes_deployment.dictionary_to_cli_param(
-                {'pea_id': self.shard_id}
-            )
+            uses_metas_dict = {'pea_id': self.shard_id}
+            if self.deployment_args.uses_metas:
+                uses_metas_dict.update(self.deployment_args.uses_metas)
+            uses_metas = kubernetes_deployment.dictionary_to_cli_param(uses_metas_dict)
             uses_with = kubernetes_deployment.dictionary_to_cli_param(
                 self.deployment_args.uses_with
             )
