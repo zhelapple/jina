@@ -1,12 +1,12 @@
+import json
 import os
 import tempfile
-import json
-from typing import Dict, Optional, Generator
+from typing import Dict, Generator, Optional
 
-from .kubernetes_client import K8sClients
 from ....importer import ImportExtensions
 from ....logging.logger import JinaLogger
 from ....logging.predefined import default_logger
+from .kubernetes_client import K8sClients
 
 cur_dir = os.path.dirname(__file__)
 DEFAULT_RESOURCE_DIR = os.path.join(
@@ -29,8 +29,8 @@ def create(
     :param params: dictionary for replacing the placeholders (keys) with the actual values.
     """
 
-    from kubernetes.utils import FailToCreateError
     from kubernetes import utils
+    from kubernetes.utils import FailToCreateError
 
     clients = K8sClients()
     if template == 'configmap':
@@ -134,12 +134,19 @@ def _create_device_plugins(params: Dict):
 def _patch_deployment_with_device_plugins(yaml_content: str, params: Dict):
     import yaml
 
-    device_plugins = _create_device_plugins(params['device_plugins'])
+    gpus = params['device_plugins']['nvidia.com/gpu']
+    if gpus == 'all':
+        deployment = yaml.safe_load(yaml_content)
+        deployment['spec']['template']['spec']['nodeSelector'] = {
+            'gpunode': 'yes'
+        }  # TODO: works only for docsqa
+    else:
+        device_plugins = _create_device_plugins(params['device_plugins'])
 
-    deployment = yaml.safe_load(yaml_content)
-    deployment['spec']['template']['spec']['containers'][0][
-        'resources'
-    ] = device_plugins
+        deployment = yaml.safe_load(yaml_content)
+        deployment['spec']['template']['spec']['containers'][0][
+            'resources'
+        ] = device_plugins
     return json.dumps(deployment)
 
 
