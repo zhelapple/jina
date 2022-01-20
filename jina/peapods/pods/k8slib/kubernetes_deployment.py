@@ -1,6 +1,6 @@
 import json
-from argparse import Namespace
 import os
+from argparse import Namespace
 from typing import Dict, List, Optional, Tuple, Union
 
 from jina.hubble.helper import parse_hub_uri

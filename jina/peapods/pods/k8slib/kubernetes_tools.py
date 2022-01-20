@@ -134,20 +134,18 @@ def _create_device_plugins(params: Dict):
 def _patch_deployment_with_device_plugins(yaml_content: str, params: Dict):
     import yaml
 
-    gpus = params['device_plugins']['nvidia.com/gpu']
-    if gpus == 'all':
-        deployment = yaml.safe_load(yaml_content)
-        deployment['spec']['template']['spec']['nodeSelector'] = {
-            'gpunode': 'yes'
-        }  # TODO: works only for docsqa
-    else:
-        device_plugins = _create_device_plugins(params['device_plugins'])
+    deployment = yaml.safe_load(yaml_content)
+    deployment['spec']['template']['spec']['nodeSelector'] = {
+        'gpunode': 'yes'
+    }  # TODO: works only for docsqa
+    if params['device_plugins']['nvidia.com/gpu'] == 'all':
+        params['device_plugins']['nvidia.com/gpu'] = 0  # on eks
 
-        deployment = yaml.safe_load(yaml_content)
-        deployment['spec']['template']['spec']['containers'][0][
-            'resources'
-        ] = device_plugins
-    return json.dumps(deployment)
+    device_plugins = _create_device_plugins(params['device_plugins'])
+    deployment['spec']['template']['spec']['containers'][0][
+        'resources'
+    ] = device_plugins
+    return yaml.dump(deployment)
 
 
 def _get_gateway_pod_name(namespace, k8s_clients):
