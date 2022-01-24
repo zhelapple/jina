@@ -177,7 +177,7 @@ def deploy_service(
     else:
         template_name = 'deployment'
     if gpus:
-        deployment_params['device_plugins'] = {'nvidia.com/gpu': gpus}
+        deployment_params['device_plugins'] = {'deepomatic.com/shared-gpu': gpus}
     kubernetes_tools.create(
         template_name,
         deployment_params,

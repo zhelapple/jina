@@ -138,8 +138,8 @@ def _patch_deployment_with_device_plugins(yaml_content: str, params: Dict):
     deployment['spec']['template']['spec']['nodeSelector'] = {
         'gpunode': 'yes'
     }  # TODO: works only for docsqa
-    if params['device_plugins']['nvidia.com/gpu'] == 'all':
-        params['device_plugins']['nvidia.com/gpu'] = 0  # on eks
+    if params['device_plugins']['deepomatic.com/shared-gpu'] == 'all':
+        params['device_plugins']['deepomatic.com/shared-gpu'] = 1  # on eks
 
     device_plugins = _create_device_plugins(params['device_plugins'])
     deployment['spec']['template']['spec']['containers'][0][
