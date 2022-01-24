@@ -35,9 +35,11 @@ def create(
     clients = K8sClients()
     if template == 'configmap':
         yaml = _patch_configmap_yaml(template, params)
-    elif template in ['deployment', 'deployment-init'] and params.get('device_plugins'):
+    elif template in ['deployment', 'deployment-init']:
         yaml = _get_yaml(template, params, custom_resource_dir)
-        yaml = _patch_deployment_with_device_plugins(yaml, params)
+        yaml = _patch_label(yaml, params)
+        if params.get('device_plugins'):
+            yaml = _patch_deployment_with_device_plugins(yaml, params)
     else:
         yaml = _get_yaml(template, params, custom_resource_dir)
     fd, path = tempfile.mkstemp()
@@ -131,13 +133,23 @@ def _create_device_plugins(params: Dict):
     return data
 
 
+def _patch_label(yaml_content: str, params: Dict):
+    import yaml
+
+    deployment = yaml.safe_load(yaml_content)
+    # TODO: works only for docsqa
+    if 'device_plugins' in params:
+        deployment['spec']['template']['spec']['nodeSelector'] = {'gpunode': 'yes'}
+    else:
+        deployment['spec']['template']['spec']['nodeSelector'] = {'gpunode': 'no'}
+
+    return yaml.dump(deployment)
+
+
 def _patch_deployment_with_device_plugins(yaml_content: str, params: Dict):
     import yaml
 
     deployment = yaml.safe_load(yaml_content)
-    deployment['spec']['template']['spec']['nodeSelector'] = {
-        'gpunode': 'yes'
-    }  # TODO: works only for docsqa
     if params['device_plugins']['deepomatic.com/shared-gpu'] == 'all':
         params['device_plugins']['deepomatic.com/shared-gpu'] = 1  # on eks
 
