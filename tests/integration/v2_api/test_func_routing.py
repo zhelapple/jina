@@ -12,7 +12,7 @@ def test_func_simple_routing():
             assert kwargs['parameters']['topk'] == 10
             kwargs['docs'][0].tags['hello'] = 'world'
 
-    f = Flow(port_expose=1234).add(uses=MyExecutor)
+    f = Flow(port=1234).add(uses=MyExecutor)
 
     with f:
         results = Client(return_responses=True, port=1234).post(
@@ -38,7 +38,7 @@ def test_func_failure():
         def foo(self, **kwargs):
             raise Exception()
 
-    f = Flow(port_expose=1234).add(uses=MyExecutor)
+    f = Flow(port=1234).add(uses=MyExecutor)
 
     with f:
         results = Client(return_responses=True, port=1234).post(
@@ -56,7 +56,7 @@ def test_func_default_routing():
                 assert j in kwargs
             assert len(kwargs['docs']) == 3
 
-    f = Flow(port_expose=1234).add(uses=MyExecutor)
+    f = Flow(port=1234).add(uses=MyExecutor)
 
     with f:
         Client(return_responses=True, port=1234).post(
@@ -72,7 +72,7 @@ def test_func_return_():
         def foo(self, **kwargs):
             return DocumentArray([Document(), Document()])
 
-    f = Flow(port_expose=1234).add(uses=MyExecutor)
+    f = Flow(port=1234).add(uses=MyExecutor)
 
     with f:
         Client(return_responses=True, port=1234).post(
@@ -104,7 +104,7 @@ def test_func_joiner(mocker):
                 d.text = f'world {idx}'
 
     f = (
-        Flow(port_expose=1234)
+        Flow(port=1234)
         .add(uses=M1)
         .add(uses=M2, needs='gateway')
         .add(uses=Joiner, needs=['executor0', 'executor1'])
@@ -129,7 +129,7 @@ def test_func_joiner(mocker):
 
 
 def test_dealer_routing(mocker):
-    f = Flow(port_expose=1234).add(shards=3)
+    f = Flow(port=1234).add(shards=3)
     mock = mocker.Mock()
     with f:
         Client(return_responses=True, port=1234).post(
@@ -153,7 +153,7 @@ def test_target_executor(mocker):
         def bar(self, **kwargs):
             pass
 
-    f = Flow(port_expose=1234).add(name='p0', uses=Foo).add(name='p1', uses=Bar)
+    f = Flow(port=1234).add(name='p0', uses=Foo).add(name='p1', uses=Bar)
 
     with f:
         success_mock = mocker.Mock()
@@ -187,7 +187,7 @@ def test_target_executor_with_overlaped_name(mocker):
             pass
 
     f = (
-        Flow(port_expose=1234)
+        Flow(port=1234)
         .add(uses=FailExecutor, name='foo_with_what_ever_suffix')
         .add(uses=PassExecutor, name='foo')
     )
@@ -202,7 +202,7 @@ def test_target_executor_with_overlaped_name(mocker):
 
 
 def test_target_executor_with_one_pathways():
-    f = Flow(port_expose=1234).add().add(name='my_target')
+    f = Flow(port=1234).add().add(name='my_target')
     with f:
         results = Client(return_responses=True, port=1234).post(
             on='/search',
@@ -213,11 +213,7 @@ def test_target_executor_with_one_pathways():
 
 
 def test_target_executor_with_two_pathways():
-    f = (
-        Flow(port_expose=1234)
-        .add()
-        .add(needs=['gateway', 'executor0'], name='my_target')
-    )
+    f = Flow(port=1234).add().add(needs=['gateway', 'executor0'], name='my_target')
     with f:
         results = Client(return_responses=True, port=1234).post(
             on='/search',
@@ -228,12 +224,7 @@ def test_target_executor_with_two_pathways():
 
 
 def test_target_executor_with_two_pathways_one_skip():
-    f = (
-        Flow(port_expose=1234)
-        .add()
-        .add(needs=['gateway', 'executor0'])
-        .add(name='my_target')
-    )
+    f = Flow(port=1234).add().add(needs=['gateway', 'executor0']).add(name='my_target')
     with f:
         results = Client(return_responses=True, port=1234).post(
             on='/search',
@@ -244,7 +235,7 @@ def test_target_executor_with_two_pathways_one_skip():
 
 
 def test_target_executor_with_shards():
-    f = Flow(port_expose=1234).add(shards=2).add(name='my_target')
+    f = Flow(port=1234).add(shards=2).add(name='my_target')
     with f:
         results = Client(return_responses=True, port=1234).post(
             on='/search',
