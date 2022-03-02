@@ -1,3 +1,4 @@
+from argparse import Namespace
 import itertools
 import json
 import os
@@ -59,8 +60,9 @@ class PostMockResponse:
 
 
 class GetMockResponse:
-    def __init__(self, response_code: int = 200):
+    def __init__(self, response_code: int = 200, no_image=False):
         self.response_code = response_code
+        self.no_image = no_image
 
     def json(self):
         return {
@@ -69,9 +71,11 @@ class GetMockResponse:
                 'id': 'dummy_mwu_encoder',
                 'name': 'alias_dummy',
                 'visibility': 'public',
-                'commit': {'tags': ['v0']},
+                'commit': {'_id': 'commit_id', 'tags': ['v0']},
                 'package': {
-                    'containers': ['jinahub/pod.dummy_mwu_encoder'],
+                    'containers': []
+                    if self.no_image
+                    else ['jinahub/pod.dummy_mwu_encoder'],
                     'download': 'http://hubbleapi.jina.ai/files/dummy_mwu_encoder-v0.zip',
                     'md5': 'ecbe3fdd9cbe25dbb85abaaf6c54ec4f',
                 },
@@ -169,7 +173,7 @@ def test_fetch(mocker, monkeypatch):
     monkeypatch.setattr(requests, 'get', _mock_get)
     args = set_hub_pull_parser().parse_args(['jinahub://dummy_mwu_encoder'])
 
-    executor, _ = HubIO(args).fetch_meta('dummy_mwu_encoder', None)
+    executor, _ = HubIO(args).fetch_meta('dummy_mwu_encoder', None, force=True)
 
     assert executor.uuid == 'dummy_mwu_encoder'
     assert executor.name == 'alias_dummy'
@@ -177,11 +181,27 @@ def test_fetch(mocker, monkeypatch):
     assert executor.image_name == 'jinahub/pod.dummy_mwu_encoder'
     assert executor.md5sum == 'ecbe3fdd9cbe25dbb85abaaf6c54ec4f'
 
-    executor, _ = HubIO(args).fetch_meta('dummy_mwu_encoder', '')
+    executor, _ = HubIO(args).fetch_meta('dummy_mwu_encoder', '', force=True)
     assert executor.tag == 'v0'
 
-    executor, _ = HubIO(args).fetch_meta('dummy_mwu_encoder', 'v0.1')
+    executor, _ = HubIO(args).fetch_meta('dummy_mwu_encoder', 'v0.1', force=True)
     assert executor.tag == 'v0.1'
+
+
+def test_fetch_with_no_image(mocker, monkeypatch):
+    mock = mocker.Mock()
+
+    def _mock_get(url, headers=None):
+        mock(url=url)
+        return GetMockResponse(response_code=200, no_image=True)
+
+    monkeypatch.setattr(requests, 'get', _mock_get)
+
+    with pytest.raises(Exception) as exc_info:
+        HubIO.fetch_meta('dummy_mwu_encoder', tag=None, force=True)
+
+    assert exc_info.match('No image found for executor "dummy_mwu_encoder"')
+    assert mock.call_count == 1
 
 
 class DownloadMockResponse:
@@ -513,31 +533,43 @@ class SandboxCreateMockResponse:
 def test_deploy_public_sandbox_existing(mocker, monkeypatch):
     mock = mocker.Mock()
 
-    def _mock_get(url, params, headers=None):
-        mock(url=url, params=params)
+    def _mock_post(url, json, headers=None):
+        mock(url=url, json=json)
         return SandboxGetMockResponse(response_code=200)
 
-    monkeypatch.setattr(requests, "get", _mock_get)
+    monkeypatch.setattr(requests, "post", _mock_post)
 
-    host, port = HubIO.deploy_public_sandbox("jinahub+sandbox://dummy_mwu_encoder")
+    args = Namespace(
+        uses='jinahub+sandbox://dummy_mwu_encoder',
+        uses_with={'foo': 'bar'},
+        test_string='text',
+        test_number=1,
+    )
+    host, port = HubIO.deploy_public_sandbox(args)
     assert host == 'http://test_existing_deployment.com'
     assert port == 4321
+
+    _, kwargs = mock.call_args
+    assert kwargs['json']['args'] == {
+        'uses_with': {'foo': 'bar'},
+        'test_number': 1,
+        'test_string': 'text',
+    }
 
 
 def test_deploy_public_sandbox_create_new(mocker, monkeypatch):
     mock = mocker.Mock()
 
-    def _mock_get(url, params, headers=None):
-        mock(url=url, params=params)
-        return SandboxGetMockResponse(response_code=404)
-
     def _mock_post(url, json, headers=None):
         mock(url=url, json=json)
-        return SandboxCreateMockResponse(response_code=requests.codes.created)
+        if url.endswith('/sandbox.get'):
+            return SandboxGetMockResponse(response_code=404)
+        else:
+            return SandboxCreateMockResponse(response_code=requests.codes.created)
 
-    monkeypatch.setattr(requests, "get", _mock_get)
     monkeypatch.setattr(requests, 'post', _mock_post)
 
-    host, port = HubIO.deploy_public_sandbox("jinahub+sandbox://dummy_mwu_encoder")
+    args = Namespace(uses='jinahub+sandbox://dummy_mwu_encoder')
+    host, port = HubIO.deploy_public_sandbox(args)
     assert host == 'http://test_new_deployment.com'
     assert port == 4322
